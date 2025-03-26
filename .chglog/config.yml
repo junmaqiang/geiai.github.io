@@ -1,0 +1,43 @@
+style: github # 指定使用的样式文件
+template: CHANGELOG.tpl.md # 指定使用的模板文件
+
+# 指定生成的 CHANGELOG.md 文件的标题和仓库 URL
+info:
+  title: CHANGELOG
+  repository_url: git@github.com:junmaqiang/geiai.github.io.git
+
+# 指定生成 CHANGELOG.md 文件的选项
+options:
+  #tag_filter_pattern: '^v' # 指定用于过滤标签的正则表达式
+  #sort: "date" # 指定排序方式，可以是 date、semver 或 keep
+  # 指定如何过滤和排序提交
+  commits:
+    filters: # 指定要过滤的提交类型
+      Type:
+        - feat
+        - fix
+        - perf
+        - refactor
+    sort_by: Scope # 指定排序方式，可以是 Scope、Type、Subject、Body 或 Footer
+  # 指定如何分组提交
+  commit_groups:
+    title_maps:
+      feat: Features
+      fix: Bug Fixes
+      perf: Performance Improvements
+      refactor: Code Refactoring
+    group_by: Type # 指定分组方式，可以是 Type、Scope 或 Subject
+    sort_by: Title # 指定排序方式，可以是 Title 或 Count
+    title_order: # 指定标题的顺序
+      - feat
+  # 指定如何处理提交的头部
+  header:
+    pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?\\:\\s(.*)$"
+    pattern_maps: # 指定头部的映射
+      - Type
+      - Scope
+      - Subject
+  # 指定如何处理提交中的注释
+  notes:
+    keywords: # 指定用于识别注释的关键字
+      - BREAKING CHANGE
