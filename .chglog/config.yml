@@ -4,7 +4,7 @@ template: CHANGELOG.tpl.md # 指定使用的模板文件
 # 指定生成的 CHANGELOG.md 文件的标题和仓库 URL
 info:
   title: CHANGELOG
-  repository_url: git@github.com:junmaqiang/geiai.github.io.git
+  repository_url: https://github.com/junmaqiang/geiai.github.io.git
 
 # 指定生成 CHANGELOG.md 文件的选项
 options:
