@@ -8,19 +8,102 @@ jobs:
   versioning:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
 
-      # 安装 gsemver
-      - name: Install gsemver
-        run: |
-          curl -sL https://github.com/arnaud-deprez/gsemver/releases/latest/download/gsemver-linux-amd64 -o gsemver
-          chmod +x gsemver
-          sudo mv gsemver /usr/local/bin/
+      - name: 查看所有标签
+        run: git tag
 
-      # 生成新版本并打标签
-      - name: Bump version and tag
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.23.4
+
+      # - name: 下载依赖
+      #   run: go mod download
+
+      # - name: 安装依赖
+      #   run: go test ./...
+
+      - name: 安装 gsemver
         run: |
-          NEW_VERSION=$(gsemver bump)
-          echo "New version: $NEW_VERSION"
-          git tag -a $NEW_VERSION -m "Release $NEW_VERSION"
-          git push origin $NEW_VERSION
+          go install github.com/arnaud-deprez/gsemver@latest
+          echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
+
+      # - name: 设置 Git 用户信息
+      #   run: |
+      #     git config --global user.email "${{ secrets.GIT_EMAIL }}"
+      #     git config --global user.name "${{ secrets.GIT_ACTOR }}"
+
+      - name: 生成新版本
+        id: gsemver
+        run: |
+          VERSION=$(gsemver bump)
+          echo "VERSION=$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: 检查标签是否存在
+        id: check_tag
+        run: |
+          if git rev-parse "${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "TAG_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "TAG_EXISTS=false" >> $GITHUB_ENV
+          fi
+        shell: /usr/bin/bash -e {0}
+        env:
+          GOROOT: /opt/hostedtoolcache/go/1.23.4/x64
+          VERSION: ${{ steps.gsemver.outputs.VERSION }}
+
+      - name: 安装 git-chglog
+        run: |
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+          echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
+
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          export REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          git-chglog --next-tag ${{ env.VERSION }} -o CHANGELOG.md --repository-url $REPO_URL
+          CHANGELOG=$(cat CHANGELOG.md)
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "--- CHANGELOG content ---"
+          cat CHANGELOG.md
+          echo "--- End of CHANGELOG content ---"
+        shell: /usr/bin/bash -e {0}
+        env:
+          GOROOT: /opt/hostedtoolcache/go/1.23.4/x64
+          VERSION: ${{ env.VERSION }}
+          TAG_EXISTS: false
+
+      - name: 提交变更日志
+        if: env.TAG_EXISTS == 'false'
+        run: |
+          git add CHANGELOG.md
+          git commit -m "chore: update CHANGELOG for version ${{ env.VERSION }}"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 打标签
+        if: env.TAG_EXISTS == 'false'
+        run: |
+          git tag -a "${{ env.VERSION }}" -m "Release ${{ env.VERSION }}"
+          git push origin "${{ env.VERSION }}"
+
+      - name: 创建发布
+        if: env.TAG_EXISTS == 'false'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          draft: false
+          prerelease: false
