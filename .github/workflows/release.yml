@@ -65,7 +65,7 @@ jobs:
       - name: 生成变更日志
         id: changelog
         run: |
-          export REPO_URL="https://github.com/junmaqiang/geiai.github.io.git"
+          export REPO_URL="git@github.com:junmaqiang/geiai.github.io.git"
           git-chglog --next-tag ${{ env.VERSION }} -o CHANGELOG.md --repository-url $REPO_URL
           CHANGELOG=$(cat CHANGELOG.md)
           echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
