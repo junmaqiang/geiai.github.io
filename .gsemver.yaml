@@ -9,7 +9,9 @@ majorPattern: "^BREAKING CHANGE:.*$"
 minorPattern: "^feat(.*?):.*$"
 
 # 提交信息中包含 fix，perf，refactor 时，触发修订号 Patch 递增
-# 比如：git commit -m "fix():login page crash"
+# 比如：git commit -m "fix(login):修复登录问题"
+# 比如：git commit -m "perf(login):优化登录时间"
+# 比如：git commit -m "refactor(login):重构登录模块"
 # 就会：0.0.1
 patchPattern:
   - "^fix(.*?):.*$"
