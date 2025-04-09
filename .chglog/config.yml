@@ -1,33 +1,48 @@
-style: github
-template: CHANGELOG.tpl.md
-info:
-  title: CHANGELOG
+# .chglog/config.yml
+style: github # 日志风格（github, gitlab, plain等）
+template: CHANGELOG.tpl.md # 模板文件路径
+info: # 项目信息
+  title: CHANGELOG # 日志标题
   repository_url: https://github.com/junmaqiang/geiai.github.io
-options:
+options: # 生成选项
   commits:
-     filters:
-       Type:
-         - feat
-         - fix
-         - perf
-         - docs
-         - ci
-         - chore
-         - refactor
-         - style
-         - test
-  commit_groups:
-    # title_maps:
-    #   feat: Features
-    #   fix: Bug Fixes
-    #   perf: Performance Improvements
-    #   refactor: Code Refactoring
-  header:
-    pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?\\:\\s(.*)$"
+    filters: # 提交过滤规则
+      Type: # 仅包含这些类型的提交
+        - feat
+        - fix
+        - perf
+        - docs
+        - ci
+        - chore
+        - refactor
+        - style
+        - test
+    sort_by: Scope
+    # 确保每个commit单独一行
+    format: "- {{ .Subject }}\n" # 强制换行
+  commit_groups: # 提交分组
+    title_maps: # 定义分组标题
+      feat: "🎉Features"
+      fix: "🐞Bugfixes"
+      perf: "🚀Improvements"
+      chore: "What's Changed"
+    group_by: "Type" # 添加分组间空行控制
+    line_format: "{{ .Title }}\n" # 强制换行
+  header: # 日志头信息
+    # 使用正则解析提交消息：能从 feat(core): add new feature 中解析出 Type、Scope 和 Subject
+    #        pattern: "^(\w*)(?:\((.*)\))?:\s+(.*)$" # deepseek写法
+    pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?\\:\\s(.*)$" # 官方写法
     pattern_maps:
       - Type
       - Scope
       - Subject
+  issues: # Issue 链接处理
+    prefix:
+      - "#"
+  refs: # 提交引用（如关闭的 Issue）
+    actions:
+      - Closes
+      - Fixes
   notes:
-    keywords:
+    keywords: # 指定哪些关键词标记重要说明
       - BREAKING CHANGE
