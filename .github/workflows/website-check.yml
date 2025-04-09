@@ -2,7 +2,7 @@ name: check-website-status
 
 on:
   schedule:
-    - cron: "3 1 * * *" # 每小时运行一次
+    - cron: "37 * * * *" # 每小时运行一次
   workflow_dispatch: # 手动触发
 
 jobs:
